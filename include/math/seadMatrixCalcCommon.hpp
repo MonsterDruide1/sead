@@ -1202,9 +1202,9 @@ void Matrix34CalcCommon<T>::makeQ(Base& o, const Quat& q)
     o.m[2][1] = yz + wx;
     o.m[2][2] = 1 - xx - yy;
 
-    o.m[0][3] = 0;
+    /*o.m[0][3] = 0;
     o.m[1][3] = 0;
-    o.m[2][3] = 0;
+    o.m[2][3] = 0;*/
 }
 
 template <typename T>
