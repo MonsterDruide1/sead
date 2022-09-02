@@ -5,84 +5,73 @@
 #include <prim/seadSafeString.h>
 #include <resource/seadResourceMgr.h>
 #include <thread/seadDelegateThread.h>
+#include "prim/seadScopedLock.h"
 
 namespace sead
 {
 bool TaskMgr::changeTaskState_(TaskBase* task, TaskBase::State state)
 {
-    mCriticalSection.lock();
+    ScopedLock<CriticalSection> lock = makeScopedLock(mCriticalSection);
 
-    if (task->mState != state)
+    TaskBase::State taskState = task->mState;
+    if (taskState == state)
+        return false;
+
+    switch (state)
     {
-        switch (state)
-        {
-        case TaskBase::cPrepare:
-            if (task->mState == TaskBase::cCreated)
-            {
-                task->mState = TaskBase::cPrepare;
-                appendToList_(mPrepareList, task);
+    case TaskBase::cPrepare:
+        if (taskState != TaskBase::cCreated)
+            return false;
 
-                if (mPrepareThread == NULL || mPrepareThread->sendMessage(1, 1))
-                {
-                    mCriticalSection.unlock();
-                    return true;
-                }
-            }
+        task->mState = TaskBase::cPrepare;
+        appendToList_(mPrepareList, task);
 
-            break;
+        if (mPrepareThread == nullptr)
+            return false;
 
-        case TaskBase::cPrepareDone:
-            task->mState = TaskBase::cPrepareDone;
-            task->mTaskListNode.erase();
+        return mPrepareThread->sendMessage(1, MessageQueue::BlockType::NonBlocking);
 
-            mCriticalSection.unlock();
-            return true;
+    case TaskBase::cPrepareDone:
+        task->mState = TaskBase::cPrepareDone;
+        task->mTaskListNode.erase();
 
-        case TaskBase::cRunning:
-            task->mState = TaskBase::cRunning;
-            task->mTaskListNode.erase();
-            appendToList_(mActiveList, task);
+        return true;
 
-            if (ResourceMgr::instance() != NULL)
-                ResourceMgr::instance()->postCreate();
+    case TaskBase::cRunning:
+        task->mState = TaskBase::cRunning;
+        task->mTaskListNode.erase();
+        appendToList_(mActiveList, task);
 
-            task->enterCommon();
+        task->enterCommon();
 
-            mCriticalSection.unlock();
-            return true;
+        return true;
 
-        case TaskBase::cDying:
-            task->mState = TaskBase::cDying;
+    case TaskBase::cDying:
+        task->mState = TaskBase::cDying;
 
-            mCriticalSection.unlock();
-            return true;
+        return true;
 
-        case TaskBase::cDestroyable:
-            if (task->mState == TaskBase::cRunning)
-            {
-                task->mState = TaskBase::cDestroyable;
-                task->detachCalcImpl();
-                task->detachDrawImpl();
-                appendToList_(mDestroyableList, task);
+    case TaskBase::cDestroyable:
+        if (taskState != TaskBase::cRunning)
+            return false;
+            
+        task->mState = TaskBase::cDestroyable;
+        task->detachCalcImpl();
+        task->detachDrawImpl();
+        appendToList_(mDestroyableList, task);
 
-                mCriticalSection.unlock();
-                return true;
-            }
+        return true;
 
-            break;
+    case TaskBase::cDead:
+        task->exit();
+        task->mState = TaskBase::cDead;
+        task->mTaskListNode.erase();
 
-        case TaskBase::cDead:
-            task->exit();
-            task->mState = TaskBase::cDead;
-            task->mTaskListNode.erase();
-
-            mCriticalSection.unlock();
-            return true;
-        }
+        return true;
+    case TaskBase::cCreated:
+    case TaskBase::cSleep:
+        return false;
     }
-
-    mCriticalSection.unlock();
-    return false;
 }
 
 void TaskMgr::destroyTaskSync(TaskBase* task)
@@ -94,15 +83,16 @@ void TaskMgr::destroyTaskSync(TaskBase* task)
     }
 }
 
+// NON_MATCHING: mismatch in the loop of destroying heaps
 void TaskMgr::doDestroyTask_(TaskBase* task)
 {
-    mCriticalSection.lock();
+    ScopedLock<CriticalSection> lock = makeScopedLock(mCriticalSection);
 
-    TreeNode* node = task->mChild;
+    TTreeNode<TaskBase*>* node = task->child();
     while (node != NULL)
     {
-        doDestroyTask_(static_cast<TTreeNode<TaskBase*>*>(node)->mData);
-        node = task->mChild;
+        doDestroyTask_(node->value());
+        node = task->child();
     }
 
     if (changeTaskState_(task, TaskBase::cDead))
@@ -110,39 +100,38 @@ void TaskMgr::doDestroyTask_(TaskBase* task)
         task->detachAll();
 
         HeapArray heapArray(task->mHeapArray);
-        for (s32 i = 0; i < HeapMgr::sRootHeaps.mPtrNum; i++)
+        for (s32 i = 0; i < HeapMgr::getRootHeapNum(); i++)
         {
-            Heap* heap = heapArray.mHeaps[i];
-            if (heap != NULL)
+            Heap* heap = heapArray.getHeap(i);
+            if (heap != nullptr)
                 heap->destroy();
         }
     }
-
-    mCriticalSection.unlock();
 }
 
+// NON_MATCHING: mismatch in the loop of destroying heaps
 void TaskMgr::finalize()
 {
-    if (mPrepareThread != NULL)
+    if (mPrepareThread != nullptr)
     {
         mPrepareThread->quitAndDestroySingleThread(false);
         delete mPrepareThread;
-        mPrepareThread = NULL;
+        mPrepareThread = nullptr;
     }
 
-    if (mRootTask != NULL)
+    if (mRootTask != nullptr)
     {
         destroyTaskSync(mRootTask);
-        mRootTask = NULL;
+        mRootTask = nullptr;
     }
 
-    for (s32 i = 0; i < HeapMgr::sRootHeaps.mPtrNum; i++)
+    for (s32 i = 0; i < HeapMgr::getRootHeapNum(); i++)
     {
         Heap* heap = mHeapArray.mHeaps[i];
         if (heap)
         {
             heap->destroy();
-            mHeapArray.mHeaps[i] = NULL;
+            mHeapArray.mHeaps[i] = nullptr;
         }
     }
 }

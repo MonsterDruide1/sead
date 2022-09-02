@@ -88,6 +88,7 @@ add_library(sead OBJECT
   modules/src/framework/seadCalculateTask.cpp
   modules/src/framework/seadMethodTree.cpp
   modules/src/framework/seadProcessMeterBar.cpp
+  modules/src/framework/seadTaskMgr.cpp
 
   include/gfx/seadCamera.h
   include/gfx/seadColor.h

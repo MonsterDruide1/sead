@@ -5,6 +5,7 @@
 #include <framework/seadMethodTree.h>
 #include <framework/seadTaskBase.h>
 #include <heap/seadHeapMgr.h>
+#include <hostio/seadHostIONode.h>
 #include <thread/seadCriticalSection.h>
 
 namespace sead
@@ -14,7 +15,7 @@ class Framework;
 class Heap;
 class NullFaderTask;
 
-class TaskMgr
+class TaskMgr : hostio::Node
 {
 public:
     struct InitializeArg
