@@ -45,13 +45,13 @@ public:
     void printImpl_(const char*, int, bool, BoundBox2f*);
 
 private:
+    static FontBase* sDefaultFont;
+
     Viewport* mViewport;
     Projection* mProjection;
     Camera* mCamera;
-    int _20;
-    int _24;
-    int _28;
-    int _2c;
+    FontBase* mFontBase;
+    Vector2f mCursorPos;
     Vector2f mScale;
     Color4f mColor;
     int _48;

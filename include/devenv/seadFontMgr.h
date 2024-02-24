@@ -34,7 +34,7 @@ private:
 class FontBase
 {
 public:
-    virtual ~FontBase() = default;
+    inline virtual ~FontBase();
 
     virtual float getHeight() const = 0;
     virtual float getWidth() const = 0;
@@ -47,5 +47,7 @@ public:
                        const Matrix34f& mtx, const Color4f& color, const void* text,
                        int len) const = 0;
 };
+
+FontBase::~FontBase() = default;
 
 }  // namespace sead
