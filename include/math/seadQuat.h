@@ -61,6 +61,9 @@ public:
         return this->x == rhs.x && this->y == rhs.y && this->z == rhs.z && this->w == rhs.w;
     }
 
+    Vec3 vector() const { return {this->x, this->y, this->z}; }
+    T scalar() const { return this->w; }
+
     T length() const;
     T normalize();
     T dot(const Self& q);

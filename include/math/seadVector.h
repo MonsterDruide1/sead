@@ -128,6 +128,11 @@ struct Vector3 : public Policies<T>::Vec3Base
     Vector3 operator-() const { return {-this->x, -this->y, -this->z}; }
 
     T dot(const Vector3& t) const;
+    Vector3 cross(const Vector3& t) const {
+        Vector3 o;
+        Vector3CalcCommon<T>::cross(o, *this, t);
+        return o;
+    }
     T length() const;
     T squaredLength() const;
 
