@@ -1,5 +1,6 @@
 #pragma once
 
+#include "math/seadMatrix.h"
 #ifndef SEAD_MATH_QUAT_CALC_COMMON_H_
 #include <math/seadQuatCalcCommon.h>
 #endif
@@ -156,7 +157,7 @@ inline void QuatCalcCommon<T>::setRPY(Base& q, T roll, T pitch, T yaw)
 template <typename T>
 inline void QuatCalcCommon<T>::calcRPY(Vec3& rpy, const Base& q)
 {
-    const T zz = q.z * q.z;
+    /*const T zz = q.z * q.z;
     const T ww = q.w * q.w;
     const T xx = q.x * q.x;
     const T yy = q.y * q.y;
@@ -193,11 +194,11 @@ inline void QuatCalcCommon<T>::calcRPY(Vec3& rpy, const Base& q)
         rpy.x = std::atan2f(a32, a33);
         rpy.y = std::asinf(-a31);
         rpy.z = std::atan2f(a21, a11);
-    }
+    }*/
 
-    /*Matrix34<T> mtx;
-    mtx.makeQT(q, Vec3::zero);
-    mtx.getRotation(rpy);*/
+    Matrix34<T> mtx;
+    mtx.fromQuat(q);
+    mtx.getRotation(rpy);
 }
 
 template <typename T>
