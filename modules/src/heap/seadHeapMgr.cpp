@@ -8,6 +8,7 @@
 
 namespace sead
 {
+Arena* HeapMgr::sArena = nullptr;
 HeapMgr* HeapMgr::sInstancePtr = nullptr;
 
 HeapMgr HeapMgr::sInstance;
@@ -15,6 +16,7 @@ Arena HeapMgr::sDefaultArena;
 HeapMgr::RootHeaps HeapMgr::sRootHeaps;
 HeapMgr::IndependentHeaps HeapMgr::sIndependentHeaps;
 CriticalSection HeapMgr::sHeapTreeLockCS;
+TickSpan HeapMgr::sSleepSpanAtRemoveCacheFailure;
 
 HeapMgr::HeapMgr() = default;
 HeapMgr::~HeapMgr() = default;
