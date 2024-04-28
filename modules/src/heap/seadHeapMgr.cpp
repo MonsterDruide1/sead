@@ -8,6 +8,7 @@
 
 namespace sead
 {
+Arena* HeapMgr::sArena = nullptr;
 HeapMgr* HeapMgr::sInstancePtr = nullptr;
 
 HeapMgr HeapMgr::sInstance;
