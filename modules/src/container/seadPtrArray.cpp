@@ -1,4 +1,3 @@
-#include <basis/seadNew.h>
 #include <basis/seadRawPrint.h>
 #include <container/seadPtrArray.h>
 
@@ -33,7 +32,7 @@ void PtrArrayImpl::allocBuffer(s32 ptrNumMax, Heap* heap, s32 alignment)
         return;
     }
 
-    setBuffer(ptrNumMax, new (heap, alignment, std::nothrow) u8[s32(sizeof(void*)) * ptrNumMax]);
+    setBuffer(ptrNumMax, new u8[s32(sizeof(void*)) * ptrNumMax]);
 }
 
 bool PtrArrayImpl::tryAllocBuffer(s32 ptrNumMax, Heap* heap, s32 alignment)
@@ -46,7 +45,7 @@ bool PtrArrayImpl::tryAllocBuffer(s32 ptrNumMax, Heap* heap, s32 alignment)
         return false;
     }
 
-    auto* buf = new (heap, alignment, std::nothrow) u8[s32(sizeof(void*)) * ptrNumMax];
+    auto* buf = new u8[s32(sizeof(void*)) * ptrNumMax];
     if (!buf)
         return false;
 
