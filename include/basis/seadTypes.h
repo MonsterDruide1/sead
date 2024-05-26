@@ -8,6 +8,7 @@
 #else
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 
 using u8 = std::uint8_t;
 using u16 = std::uint16_t;
@@ -25,5 +26,10 @@ using f64 = double;
 using char16 = char16_t;
 using size_t = std::size_t;
 #endif
+
+#define DEREF_NULL *(volatile int*)0;
+#define WARN_UNIMPL printf("Function not implemented: %s (%s:%d)\n", __func__, __FILE__, __LINE__)
+#define CRASH {WARN_UNIMPL;DEREF_NULL}
+
 
 #endif  // SEAD_NEW_H_
