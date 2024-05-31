@@ -74,7 +74,7 @@ public:
 
     Framework* getFramework() const;
 
-    Controller* getController(int port) { return mControllers[port]; }
+    Controller* getController(int port) { CRASH return mControllers[port]; }
 
 private:
     OffsetList<ControlDevice> mDevices;
