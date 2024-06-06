@@ -12,7 +12,7 @@ void* NewImpl(Heap* heap, size_t size, s32 alignment, bool abortOnFailure)
 {
     if (!HeapMgr::sInstancePtr)
     {
-        SEAD_WARN("alloced[%zu] before sead system initialize", size);
+        //SEAD_WARN("alloced[%zu] before sead system initialize", size);
         return malloc(size);
     }
 
@@ -41,7 +41,7 @@ void DeleteImpl(void* ptr)
 {
     if (!sead::HeapMgr::sInstancePtr)
     {
-        SEAD_WARN("free[0x%p] before sead system initialize", ptr);
+        //SEAD_WARN("free[0x%p] before sead system initialize", ptr);
         free(ptr);
         return;
     }

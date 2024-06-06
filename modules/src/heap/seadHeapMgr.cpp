@@ -50,6 +50,107 @@ void HeapMgr::createRootHeap_()
     sRootHeaps.pushBack(expHeap);
 }
 
+Heap* HeapMgr::findContainHeap(const void* memBlock) const
+{
+    FindContainHeapCache* heapCache = nullptr;
+
+    ThreadMgr* threadMgr = ThreadMgr::instance();
+    if (threadMgr)
+    {
+        Thread* currentThread = threadMgr->getCurrentThread();
+        if (currentThread)
+            heapCache = currentThread->getFindContainHeapCache();
+    }
+
+    if (heapCache)
+    {
+        FindContainHeapCacheAccessor heapAccessor(&heapCache->mHeap);
+
+        Heap* heap = heapAccessor.getHeap();
+        if (heap && heap->hasNoChild_() && heap->isInclude(memBlock))
+        {
+#ifdef SEAD_DEBUG
+            heapCache->nolockhit++;
+#endif // SEAD_DEBUG
+            return heap;
+        }
+    }
+
+    ScopedLock<CriticalSection> lock(&sHeapTreeLockCS);
+
+    if (heapCache)
+    {
+#ifdef SEAD_DEBUG
+        heapCache->call++;
+#endif // SEAD_DEBUG
+
+        Heap* heap = heapCache->getHeap();
+        if (heap)
+        {
+            Heap* containHeap = heap->findContainHeap_(memBlock);
+            if (containHeap)
+            {
+                if (containHeap == heap)
+                {
+#ifdef SEAD_DEBUG
+                    heapCache->hit++;
+#endif // SEAD_DEBUG
+                }
+                else
+                {
+#ifdef SEAD_DEBUG
+                    heapCache->miss++;
+#endif // SEAD_DEBUG
+                    heapCache->setHeap(containHeap);
+                }
+
+                return containHeap;
+            }
+        }
+    }
+
+    for (Heap& heap : sRootHeaps)
+    {
+        Heap* containHeap = heap.findContainHeap_(memBlock);
+        if (containHeap)
+        {
+            if (heapCache)
+            {
+#ifdef SEAD_DEBUG
+                heapCache->miss++;
+#endif // SEAD_DEBUG
+                heapCache->setHeap(containHeap);
+            }
+
+            return containHeap;
+        }
+    }
+
+    for (Heap& heap : sIndependentHeaps)
+    {
+        Heap* containHeap = heap.findContainHeap_(memBlock);
+        if (containHeap)
+        {
+            if (heapCache)
+            {
+#ifdef SEAD_DEBUG
+                heapCache->miss++;
+#endif // SEAD_DEBUG
+                heapCache->setHeap(containHeap);
+            }
+
+            return containHeap;
+        }
+    }
+
+#ifdef SEAD_DEBUG
+    if (heapCache)
+        heapCache->notfound++;
+#endif // SEAD_DEBUG
+
+    return nullptr;
+}
+
 void HeapMgr::destroy()
 {
     sHeapTreeLockCS.lock();
@@ -160,17 +261,24 @@ Heap* HeapMgr::findHeapByName_(Heap* heap, const SafeString& name, int* index)
     return nullptr;
 }
 
+static Heap* currentHeap = nullptr;
+
 Heap* HeapMgr::getCurrentHeap() const
 {
-    Thread* currentThread = ThreadMgr::instance()->getCurrentThread();
+    return currentHeap;
+    /*Thread* currentThread = ThreadMgr::instance()->getCurrentThread();
+    printf("CurrentThread: %p, currentHeap: %p\n", currentThread, currentThread ? currentThread->getCurrentHeap() : nullptr);
     if (currentThread)
         return currentThread->getCurrentHeap();
-    return mAllocFromNotSeadThreadHeap;
+    return mAllocFromNotSeadThreadHeap;*/
 }
 
 Heap* HeapMgr::setCurrentHeap_(Heap* heap)
 {
-    return ThreadMgr::instance()->getCurrentThread()->setCurrentHeap(heap);
+    Heap* prevHeap = currentHeap;
+    currentHeap = heap;
+    return prevHeap;
+    //return ThreadMgr::instance()->getCurrentThread()->setCurrentHeap(heap);
 }
 
 void HeapMgr::removeRootHeap(Heap* heap)
