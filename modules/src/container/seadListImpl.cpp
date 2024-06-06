@@ -3,6 +3,53 @@
 
 namespace sead
 {
+bool ListImpl::checkLinks() const
+{
+    if (!mStartEnd.mNext)
+    {
+        return false;
+    }
+
+    s32 count = 0;
+    for (ListNode* node = mStartEnd.mNext; node != &mStartEnd; node = node->mNext)
+    {
+        if (!node->mNext)
+        {
+            return false;
+        }
+
+        if (node->mNext->mPrev != node)
+        {
+            return false;
+        }
+
+        count++;
+    }
+
+    if (!mStartEnd.mPrev)
+    {
+        return false;
+    }
+
+    s32 countR = 0;
+    for (ListNode* node = mStartEnd.mPrev; node != &mStartEnd; node = node->mPrev)
+    {
+        if (!node->mPrev)
+        {
+            return false;
+        }
+
+        if (node->mPrev->mNext != node)
+        {
+            return false;
+        }
+
+        countR++;
+    }
+
+
+    return count == countR && countR == mCount;
+}
 void ListNode::insertBack_(ListNode* node)
 {
     SEAD_ASSERT_MSG(!node->isLinked(), "node is already linked.");
