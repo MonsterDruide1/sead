@@ -5,7 +5,6 @@
 #endif  // cafe
 
 #include <math/seadMathCalcCommon.h>
-#include <math/seadQuatCalcCommon.h>
 #ifndef SEAD_MATH_VECTOR_CALC_COMMON_H_
 #include <math/seadVectorCalcCommon.h>
 #endif
