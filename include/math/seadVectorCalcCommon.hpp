@@ -38,6 +38,21 @@ inline void Vector2CalcCommon<T>::negate(Base& v)
     v.x = -v.x;
     v.y = -v.y;
 }
+
+template <typename T>
+T Vector2CalcCommon<T>::normalize(Base& v)
+{
+    const T len = length(v);
+    if (len > 0)
+    {
+        const T inv_len = 1 / len;
+        v.x *= inv_len;
+        v.y *= inv_len;
+    }
+
+    return len;
+}
+
 template <typename T>
 inline void Vector2CalcCommon<T>::set(Base& o, const Base& v)
 {
