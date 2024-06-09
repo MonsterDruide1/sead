@@ -57,6 +57,7 @@ struct Vector2 : public Policies<T>::Vec2Base
 
     void multScalar(T t);
     void negate();
+    T normalize();
     void set(const Vector2& other);
     void set(T x_, T y_);
     void setScale(const Vector2<T>& a, T t);
