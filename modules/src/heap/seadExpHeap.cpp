@@ -362,6 +362,7 @@ void* ExpHeap::tryAlloc(size_t size, s32 alignment)
 
     //mFreeSize = getFreeSize();
 
+    memset(ret, 0, block->getSize());
     return ret;
 }
 
