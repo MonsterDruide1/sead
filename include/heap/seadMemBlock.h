@@ -21,7 +21,7 @@ const size_t cPtrSize = sizeof(void*);
 
 class MemBlock
 {
-protected:
+public:
     MemBlock() : mListNode(), mHeapCheckTag(0), mOffset(0), mSize(0) {}
 
     u8* memory() const
