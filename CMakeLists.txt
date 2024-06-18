@@ -117,6 +117,7 @@ add_library(sead OBJECT
 
   include/heap/seadArena.h
   include/heap/seadDisposer.h
+  include/heap/ClonableExpHeap.h
   include/heap/seadExpHeap.h
   include/heap/seadFrameHeap.h
   include/heap/seadHeap.h
@@ -124,6 +125,7 @@ add_library(sead OBJECT
   include/heap/seadMemBlock.h
   modules/src/heap/seadArena.cpp
   modules/src/heap/seadDisposer.cpp
+  modules/src/heap/ClonableExpHeap.cpp
   modules/src/heap/seadExpHeap.cpp
   modules/src/heap/seadHeap.cpp
   modules/src/heap/seadHeapMgr.cpp
