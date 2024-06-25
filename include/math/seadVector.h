@@ -55,6 +55,8 @@ struct Vector2 : public Policies<T>::Vec2Base
     bool operator==(const Vector2& rhs) const { return this->x == rhs.x && this->y == rhs.y; }
     bool operator!=(const Vector2& rhs) const { return !operator==(rhs); }
 
+    Vector2 operator-() const { return {-this->x, -this->y}; }
+    
     void multScalar(T t);
     void negate();
     T normalize();
@@ -66,7 +68,6 @@ struct Vector2 : public Policies<T>::Vec2Base
     T cross(const Vector2& other) const;
     T length() const;
     T squaredLength() const;
-    T normalize();
 
     bool isZero() const { return *this == zero; }
 
