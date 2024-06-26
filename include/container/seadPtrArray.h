@@ -53,8 +53,8 @@ public:
     }
     void shuffle(Random* random);
 
-protected:
-    using CompareCallbackImpl = s32 (*)(const void* a, const void* b);
+public:
+    using CompareCallbackImpl = int (*)(const void* a, const void* b);
 
     void* at(s32 idx) const
     {
