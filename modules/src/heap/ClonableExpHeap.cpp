@@ -125,7 +125,8 @@ struct MemoryArea {
 
 void* ClonableExpHeap::tryAlloc(size_t size, s32 alignment) {
     void* ptr = ExpHeap::tryAlloc(size, alignment);
-    memset(ptr, 0, size);
+    MemBlock* block = MemBlock::FindManageArea(ptr);
+    memset(ptr, 0, block->getSize());
     if(ADDR_TO_CHECK1 != -1 && ptr <= (void*)ADDR_TO_CHECK1 && (u64)ptr+size > ADDR_TO_CHECK1) {
         printf("Allocated memory overlaps with address to check 1: %p <= %p < 0x%lx\n", ptr, (void*)ADDR_TO_CHECK1, (u64)ptr+size);
     }
