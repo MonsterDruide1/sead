@@ -19,6 +19,9 @@ public:
     ClonableExpHeap(const SafeString& name, Heap* parent, void* address, size_t size,
             HeapDirection direction, bool flag) : ExpHeap(name, parent, address, size, direction, flag) {}
 
+    void* tryAlloc(size_t size, s32 alignment) override;
+    void free(void* ptr) override;
+
     ClonableExpHeap* clone() const;
 };
 

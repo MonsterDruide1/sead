@@ -119,6 +119,45 @@ struct MemoryArea {
     u64 end;
 };
 
+#define ADDR_TO_CHECK1 -1
+#define ADDR_TO_CHECK2 -1
+#define CHECK_FREE_REFS false
+
+void* ClonableExpHeap::tryAlloc(size_t size, s32 alignment) {
+    void* ptr = ExpHeap::tryAlloc(size, alignment);
+    memset(ptr, 0, size);
+    if(ADDR_TO_CHECK1 != -1 && ptr <= (void*)ADDR_TO_CHECK1 && (u64)ptr+size > ADDR_TO_CHECK1) {
+        printf("Allocated memory overlaps with address to check 1: %p <= %p < 0x%lx\n", ptr, (void*)ADDR_TO_CHECK1, (u64)ptr+size);
+    }
+    if(ADDR_TO_CHECK2 != -1 && ptr <= (void*)ADDR_TO_CHECK2 && (u64)ptr+size > ADDR_TO_CHECK2) {
+        printf("Allocated memory overlaps with address to check 2: %p <= %p < 0x%lx\n", ptr, (void*)ADDR_TO_CHECK2, (u64)ptr+size);
+    }
+    return ptr;
+}
+void ClonableExpHeap::free(void* ptr) {
+    MemBlock* block = MemBlock::FindManageArea(ptr);
+    if(ADDR_TO_CHECK1 != -1 && block->memory() <= (void*)ADDR_TO_CHECK1 && (u64)block->memory()+block->getSize() > ADDR_TO_CHECK1) {
+        printf("Freed memory overlaps with address to check 1: %p <= %p < 0x%lx\n", block->memory(), (void*)ADDR_TO_CHECK1, (u64)block->memory()+block->getSize());
+    }
+    if(ADDR_TO_CHECK2 != -1 && block->memory() <= (void*)ADDR_TO_CHECK2 && (u64)block->memory()+block->getSize() > ADDR_TO_CHECK2) {
+        printf("Freed memory overlaps with address to check 2: %p <= %p < 0x%lx\n", block->memory(), (void*)ADDR_TO_CHECK2, (u64)block->memory()+block->getSize());
+    }
+    ExpHeap::free(ptr);
+
+    if(CHECK_FREE_REFS) {
+        MemBlock* current = mUseList.front();
+        do {
+            for(u64 i=0; i+7<current->getSize(); i+=8) {
+                u64 value = *((u64*)(current->memory()+i));
+                if(value >= (u64)block->memory() && value < (u64)block->memory()+block->getSize()) {
+                    printf("Memory contains reference to freed memory: 0x%lx (base: %p) -> %p (base: %p)\n", (u64)current->memory()+i, current->memory(), (void*)value, block->memory());
+                    break;
+                }
+            }
+        } while((current = mUseList.next(current)) != nullptr);
+    }
+}
+
 int comparePairSort(const std::pair<MemoryArea, u64>* a, const std::pair<MemoryArea, u64>* b) {
     return a->first.start - b->first.start;
 }
