@@ -418,8 +418,9 @@ public:
             return;
         // FIXME: Nintendo implemented heap sort manually without using <algorithm>
         const auto cmp_ = [cmp](const T& a, const T& b) { return cmp(&a, &b) < 0; };
-        std::make_heap(mBuffer + start_idx, mBuffer + end_idx, cmp_);
-        std::sort_heap(mBuffer + start_idx, mBuffer + end_idx, cmp_);
+        // add one because of sentinels (usually excluding the "last" parameter)
+        std::make_heap(mBuffer + start_idx, mBuffer + end_idx + 1, cmp_);
+        std::sort_heap(mBuffer + start_idx, mBuffer + end_idx + 1, cmp_);
     }
 
 protected:
