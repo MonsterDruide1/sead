@@ -1255,7 +1255,6 @@ void Matrix34CalcCommon<T>::makeQ(Base& o, const Quat& q)
     o.m[1][3] = 0;
     o.m[2][3] = 0;*/
 
-    
     const T zz = q.z * q.z;
     const T ww = q.w * q.w;
     const T xx = q.x * q.x;
@@ -1269,7 +1268,7 @@ void Matrix34CalcCommon<T>::makeQ(Base& o, const Quat& q)
     const T wz = q.w * q.z;
 
     o.m[0][0] = ww + xx - yy - zz;
-    //o.m[0][0] = (1 - yy - zz)*2;
+    // o.m[0][0] = (1 - yy - zz)*2;
     o.m[0][1] = (xy - wz) * 2;
     o.m[0][2] = (xz + wy) * 2;
 
@@ -1280,7 +1279,7 @@ void Matrix34CalcCommon<T>::makeQ(Base& o, const Quat& q)
     o.m[2][0] = (xz - wy) * 2;
     o.m[2][1] = (yz + wx) * 2;
     o.m[2][2] = ww - xx - yy + zz;
-    //o.m[2][2] = (1 - xx - yy)*2;
+    // o.m[2][2] = (1 - xx - yy)*2;
 
     o.m[0][3] = 0;
     o.m[1][3] = 0;
@@ -1756,78 +1755,106 @@ void Matrix34CalcCommon<T>::makeT(Base& o, const Vec3& t)
 template <typename T>
 void Matrix34CalcCommon<T>::toQuat(Quat& q, const Base& n)
 {
-    const T a11 = n.m[0][0];
-    const T a12 = n.m[0][1];
-    const T a13 = n.m[0][2];
+    float v2;
+    float v3;
+    float v4;
+    float v5;
+    float v6;
+    float v7;
+    float v8;
+    float v9;
+    char v10;
+    char v11;
+    char v12;
+    char v13;
+    int v14;
+    float v15;
+    float v16;
+    float v17;
+    float v18;
+    float v19;
+    float v20;
+    float v21;
+    float v22;
 
-    const T a21 = n.m[1][0];
-    const T a22 = n.m[1][1];
-    const T a23 = n.m[1][2];
-
-    const T a31 = n.m[2][0];
-    const T a32 = n.m[2][1];
-    const T a33 = n.m[2][2];
-
-    const T t = a11 + a22 + a33;
-    T w, x, y, z;
-
-    if (t > 0)
-    {
-        T s = MathCalcCommon<T>::sqrt(t + 1);
-
-        w = s * 0.5f;
-
-        // if (s != 0)
-        s = 0.5f / s;
-
-        x = (a32 - a23) * s;
-        y = (a13 - a31) * s;
-        z = (a21 - a12) * s;
-    }
-    else if (a22 > a11 && a33 <= a22)
-    {
-        T s = MathCalcCommon<T>::sqrt(a22 - (a33 + a11) + 1);
-
-        y = s * 0.5f;
-
-        if (s != 0)
-            s = 0.5f / s;
-
-        w = (a13 - a31) * s;
-        x = (a21 + a12) * s;
-        z = (a23 + a32) * s;
-    }
-    else if (a22 > a11 || a33 > a11)
-    {
-        T s = MathCalcCommon<T>::sqrt(a33 - (a11 + a22) + 1);
-
-        z = s * 0.5f;
-
-        if (s != 0)
-            s = 0.5f / s;
-
-        w = (a21 - a12) * s;
-        x = (a31 + a13) * s;
-        y = (a32 + a23) * s;
-    }
+    v2 = n.m[1][1];
+    v3 = n.m[0][0] + v2;
+    v4 = n.m[2][2];
+    v5 = (float)(v2 + v4) * 0.5;
+    v6 = (float)((float)(v3 + v4) + 1.0) * 0.25;
+    v7 = v6 - (float)((float)(n.m[0][0] + v4) * 0.5);
+    v8 = v6 - (float)(v3 * 0.5);
+    v9 = v6 - v5;
+    if (v7 <= v8)
+        v10 = 3;
     else
+        v10 = 2;
+
+    if (v9 <= v8)
+        v11 = 3;
+    else
+        v11 = 1;
+
+    if (v9 > v7)
+        v10 = v11;
+
+    if (v7 <= v8)
+        v12 = 3;
+    else
+        v12 = 2;
+
+    if (v6 <= v8)
+        v13 = 3;
+    else
+        v13 = 0;
+
+    if (v6 <= v7)
+        v13 = v12;
+
+    if (v6 <= v9)
+        v13 = v10;
+
+    v14 = v13 & 3;
+    switch (v14)
     {
-        T s = MathCalcCommon<T>::sqrt(a11 - (a22 + a33) + 1);
+    case 1:
+        v17 = sqrtf(v9);
+        q.x = v17;
+        v18 = 0.25 / v17;
+        q.w = v18 * (float)(n.m[2][1] - n.m[1][2]);
+        q.y = v18 * (float)(n.m[0][1] + n.m[1][0]);
+        v19 = n.m[0][2] + n.m[2][0];
+        break;
 
-        x = s * 0.5f;
+    case 2:
+        v20 = sqrtf(v7);
+        q.y = v20;
+        v21 = 0.25 / v20;
+        q.w = v21 * (float)(n.m[0][2] - n.m[2][0]);
+        q.z = v21 * (float)(n.m[1][2] + n.m[2][1]);
+        q.x = v21 * (float)(n.m[1][0] + n.m[0][1]);
+        return;
 
-        if (s != 0)
-            s = 0.5f / s;
+    case 3:
+        v15 = sqrtf(v8);
+        q.z = v15;
+        v16 = 0.25 / v15;
+        q.w = v16 * (float)(n.m[1][0] - n.m[0][1]);
+        q.x = v16 * (float)(n.m[2][0] + n.m[0][2]);
+        q.y = v16 * (float)(n.m[2][1] + n.m[1][2]);
+        return;
 
-        w = (a32 - a23) * s;
-        y = (a12 + a21) * s;
-        z = (a13 + a31) * s;
+    default:
+        v22 = sqrtf(v6);
+        v18 = 0.25 / v22;
+        q.w = v22;
+        q.x = (float)(0.25 / v22) * (float)(n.m[2][1] - n.m[1][2]);
+        q.y = (float)(0.25 / v22) * (float)(n.m[0][2] - n.m[2][0]);
+        v19 = n.m[1][0] - n.m[0][1];
+        break;
     }
 
-    q.w = w;
-    q.x = x;
-    q.y = y;
-    q.z = z;
+    q.z = v18 * v19;
 }
 
 template <typename T>
