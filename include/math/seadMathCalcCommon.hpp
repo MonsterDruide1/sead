@@ -75,8 +75,12 @@ inline T MathCalcCommon<T>::asin(T t)
 template <typename T>
 inline T MathCalcCommon<T>::acos(T t)
 {
-    if constexpr (std::is_floating_point<T>())
+    if constexpr (std::is_floating_point<T>()) {
         SEAD_ASSERT_MSG(-1.0 <= t && t <= 1.0, "t(%f) is not in [-1, 1].", t);
+        if(t == -1.0f) {
+            return 3.14159250259399414062;
+        }
+    }
     return std::acos(t);
 }
 
