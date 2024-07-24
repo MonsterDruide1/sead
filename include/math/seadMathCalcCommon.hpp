@@ -80,6 +80,9 @@ inline T MathCalcCommon<T>::acos(T t)
         if(t == -1.0f) {
             return 3.14159250259399414062;
         }
+        if(t == 0.0f) {
+            return 1.57079625129699707031;
+        }
     }
     return std::acos(t);
 }
