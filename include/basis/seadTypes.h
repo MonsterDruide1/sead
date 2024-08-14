@@ -27,8 +27,16 @@ using char16 = char16_t;
 using size_t = std::size_t;
 #endif
 
+//#define DBG 1
+
+#ifdef DBG
+#define dbg_printf printf
+#else
+#define dbg_printf(...) ((void)0)
+#endif
+
 #define DEREF_NULL *(volatile int*)0;
-#define WARN_UNIMPL printf("Function not implemented: %s (%s:%d)\n", __PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define WARN_UNIMPL dbg_printf("Function not implemented: %s (%s:%d)\n", __PRETTY_FUNCTION__, __FILE__, __LINE__)
 #define CRASH {WARN_UNIMPL;DEREF_NULL}
 
 
