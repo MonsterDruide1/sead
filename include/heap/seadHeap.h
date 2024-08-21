@@ -98,6 +98,7 @@ public:
     Heap* findContainHeap_(const void* ptr);
     void destruct_();
     void dispose_(const void* begin, const void* end);
+    void eraseChild_(Heap* child);
     bool hasNoChild_() const { return mChildren.size() == 0; }
 
     void* alloc(size_t size, s32 alignment = sizeof(void*))

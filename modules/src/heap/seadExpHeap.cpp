@@ -423,12 +423,12 @@ void ExpHeap::free(void* ptr)
     }
 #endif // SEAD_DEBUG
 
-    if (block->mHeapCheckTag != mHeapCheckTag)
+    /*if (block->mHeapCheckTag != mHeapCheckTag)
     {
         //SEAD_ASSERT_MSG(false, "Name:(%s) Illegal free : 0x%p MemBlock:%u ExpHeap:%u HeapMgr:%u",
         //                getName().cstr(), ptr, block->mHeapCheckTag, mHeapCheckTag, heapMgr->peekHeapCheckTag());
         return;
-    }
+    }*/
 
 #ifdef SEAD_DEBUG
     if (isEnableDebugFillFree_())
