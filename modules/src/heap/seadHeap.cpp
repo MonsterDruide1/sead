@@ -43,6 +43,46 @@ void Heap::pushBackChild_(Heap* child)
 
 Heap::~Heap() = default;
 
+void Heap::dispose_(const void* begin, const void* end)
+{
+    mFlag.setBit(Flag::cDisposing);
+
+    for (auto it = mDisposerList.begin(); it != mDisposerList.end(); )
+    {
+        if (!it->mDisposerHeap || (begin || end) && !PtrUtil::isInclude(&(*it), begin, end))
+        {
+            ++it;
+            continue;
+        }
+
+        it->~IDisposer();
+
+        it = mDisposerList.begin();
+    }
+
+    mFlag.resetBit(Flag::cDisposing);
+}
+
+void sead::Heap::destruct_() {
+    ConditionalScopedLock<CriticalSection> lock(&mCS, isEnableLock());
+
+    dispose_(nullptr, nullptr);
+
+    HeapMgr::removeFromFindContainHeapCache_(this);
+
+    if (mParent)
+        mParent->eraseChild_(this);
+    else
+        HeapMgr::removeRootHeap(this);
+}
+
+void Heap::eraseChild_(Heap* child) {
+    ScopedLock<CriticalSection> treeLock(HeapMgr::getHeapTreeLockCS_());
+    ConditionalScopedLock<CriticalSection> heapLock(&mCS, isEnableLock());
+
+    mChildren.erase(child);
+}
+
 void Heap::appendDisposer_(IDisposer* disposer)
 {
     ConditionalScopedLock<CriticalSection> lock(&mCS, isLockEnabled());
