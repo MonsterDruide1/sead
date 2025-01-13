@@ -21,8 +21,14 @@ void HashCRC32::initialize()
 
 u32 HashCRC32::calcHash(const void* ptr, u32 size)
 {
-    Context ctx;
-    return calcHashWithContext(&ctx, ptr, size);
+    if (!sInitialized)
+        initialize();
+
+    u32 hash = -1;
+    const u8* data = static_cast<const u8*>(ptr);
+    while (size--)
+        hash = sTable[*data++ ^ (hash & 0xFF)] ^ (hash >> 8);
+    return ~hash;
 }
 
 u32 HashCRC32::calcHashWithContext(Context* context, const void* ptr, u32 size)
@@ -40,8 +46,13 @@ u32 HashCRC32::calcHashWithContext(Context* context, const void* ptr, u32 size)
 
 u32 HashCRC32::calcStringHash(const char* str)
 {
-    Context ctx;
-    return calcStringHashWithContext(&ctx, str);
+    if (!sInitialized)
+        initialize();
+
+    u32 hash = -1;
+    while (*str)
+        hash = sTable[*str++ ^ (hash & 0xFF)] ^ (hash >> 8);
+    return ~hash;
 }
 
 u32 HashCRC32::calcStringHashWithContext(Context* context, const char* str)

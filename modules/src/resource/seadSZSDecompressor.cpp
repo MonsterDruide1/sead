@@ -139,12 +139,12 @@ void SZSDecompressor::DecompContext::initialize(void* dst)
     destp = static_cast<u8*>(dst);
     destCount = 0;
     forceDestCount = 0;
-    flagMask = 0;
-    flags = 0;
-    packHigh = 0;
+    headerSize = 0x10;
     step = SZSDecompressor::cStepNormal;
     lzOffset = 0;
-    headerSize = 0x10;
+    packHigh = 0;
+    flagMask = 0;
+    flags = 0;
 }
 
 SZSDecompressor::SZSDecompressor(u32 workSize, u8* workBuffer) : Decompressor("szs")
@@ -179,98 +179,103 @@ u8* SZSDecompressor::tryDecompFromDevice(const ResourceMgr::LoadArg& loadArg, Re
     else
         device = FileDeviceMgr::instance()->tryOpen(
             &handle, loadArg.path, FileDevice::cFileOpenFlag_ReadOnly, loadArg.div_size);
+    
+    if (device == NULL)
+        return NULL;
 
-    if (device != NULL &&
-        ((src = mWorkBuffer, src != NULL) ||
-         (src = new (heap, -FileDevice::cBufferMinAlignment) u8[mWorkSize], src != NULL)))
+    src = mWorkBuffer;
+    if (src == NULL) {
+        src = new (heap, -FileDevice::cBufferMinAlignment) u8[mWorkSize];
+        if (src == NULL)
+            return NULL;
+    }
+
+    u32 bytesRead = handle.read(src, mWorkSize);
+    if (bytesRead >= 0x10)
     {
-        u32 bytesRead = handle.read(src, mWorkSize);
-        if (bytesRead >= 0x10)
+        u32 decompSize = getDecompSize(src);
+        s32 decompAlignment = getDecompAlignment(src);
+
+        u32 allocSize = loadArg.load_data_buffer_size;
+        u8* dst = loadArg.load_data_buffer;
+
+        if (decompSize > allocSize && allocSize != 0)
+            decompSize = allocSize;
+
+        bool allocated = false;
+        allocSize = Mathu::roundUpPow2(decompSize, 0x20);
+
+        if (dst == NULL)
         {
-            u32 decompSize = getDecompSize(src);
-            s32 decompAlignment = getDecompAlignment(src);
-
-            u32 allocSize = loadArg.load_data_buffer_size;
-            u8* dst = loadArg.load_data_buffer;
-
-            if (decompSize > allocSize && allocSize != 0)
-                decompSize = allocSize;
-
-            bool allocated = false;
-            allocSize = Mathu::roundUpPow2(decompSize, 0x20);
-
-            if (dst == NULL)
+            DirectResource* directResource = DynamicCast<DirectResource, Resource>(resource);
+            if (directResource != NULL)
             {
-                DirectResource* directResource = DynamicCast<DirectResource, Resource>(resource);
-                if (directResource != NULL)
-                {
-                    s32 alignment = loadArg.load_data_alignment;
-                    if (alignment != 0)
-                        decompAlignment = (alignment < 0x20) ? 0x20 : alignment;
-
-                    else
-                    {
-                        if (decompAlignment == 0)
-                            decompAlignment = directResource->getLoadDataAlignment();
-
-                        decompAlignment = ((loadArg.instance_alignment < 0) ? -1 : 1) *
-                                          ((decompAlignment < 0x20) ? 0x20 : decompAlignment);
-                    }
-                }
+                s32 alignment = loadArg.load_data_alignment;
+                if (alignment != 0)
+                    decompAlignment = (alignment < 0x20) ? 0x20 : alignment;
 
                 else
-                    decompAlignment = -(((loadArg.instance_alignment < 0) ? -1 : 1) << 5);
+                {
+                    if (decompAlignment == 0)
+                        decompAlignment = directResource->getLoadDataAlignment();
 
-                dst = new (heap, decompAlignment) u8[allocSize];
-
-                if (dst != NULL)
-                    allocated = true;
+                    decompAlignment = ((loadArg.instance_alignment < 0) ? -1 : 1) *
+                                        ((decompAlignment < 0x20) ? 0x20 : decompAlignment);
+                }
             }
+
+            else
+                decompAlignment = -(((loadArg.instance_alignment < 0) ? -1 : 1) << 5);
+
+            dst = new (heap, decompAlignment) u8[allocSize];
 
             if (dst != NULL)
-            {
-                s32 error;
-                if (bytesRead < mWorkSize)
-                    error = decomp(dst, allocSize, src, mWorkSize);
-
-                else
-                {
-                    DecompContext context(dst);
-                    context.forceDestCount = decompSize;
-
-                    do
-                    {
-                        error = streamDecomp(&context, src, bytesRead);
-                        if (error <= 0)
-                            break;
-                    } while ((bytesRead = handle.read(src, mWorkSize), bytesRead != 0));
-                }
-
-                if (!(error < 0))
-                {
-                    if (mWorkBuffer == NULL)
-                        delete[] src;
-
-                    if (outSize != NULL)
-                        *outSize = decompSize;
-
-                    if (outAllocSize != NULL)
-                        *outAllocSize = allocSize;
-
-                    if (outAllocated != NULL)
-                        *outAllocated = allocated;
-
-                    return dst;
-                }
-
-                if (allocated)
-                    delete[] dst;
-            }
+                allocated = true;
         }
 
-        if (mWorkBuffer == NULL)
-            delete[] src;
+        if (dst != NULL)
+        {
+            s32 error;
+            if (bytesRead < mWorkSize)
+                error = decomp(dst, allocSize, src, mWorkSize);
+
+            else
+            {
+                DecompContext context(dst);
+                context.forceDestCount = decompSize;
+
+                do
+                {
+                    error = streamDecomp(&context, src, bytesRead);
+                    if (error <= 0)
+                        break;
+                } while ((bytesRead = handle.read(src, mWorkSize), bytesRead != 0));
+            }
+
+            if (!(error < 0))
+            {
+                if (mWorkBuffer == NULL)
+                    delete[] src;
+
+                if (outSize != NULL)
+                    *outSize = decompSize;
+
+                if (outAllocSize != NULL)
+                    *outAllocSize = allocSize;
+
+                if (outAllocated != NULL)
+                    *outAllocated = allocated;
+
+                return dst;
+            }
+
+            if (allocated)
+                delete[] dst;
+        }
     }
+
+    if (mWorkBuffer == NULL)
+        delete[] src;
 
     return NULL;
 }
@@ -291,7 +296,7 @@ s32 SZSDecompressor::readHeader_(DecompContext* context, const u8* src, u32 srcS
 
     while (context->headerSize != 0)
     {
-        context->headerSize -= 1;
+        context->headerSize--;
 
         if (context->headerSize == 0xF)
         {
@@ -326,13 +331,9 @@ s32 SZSDecompressor::readHeader_(DecompContext* context, const u8* src, u32 srcS
             return len;
     }
 
-    if (context->forceDestCount < 1)
-        return len;
+    if (context->forceDestCount >= 1 && context->forceDestCount < context->destCount)
+        context->destCount = context->forceDestCount;
 
-    if (context->destCount <= context->forceDestCount)
-        return len;
-
-    context->destCount = context->forceDestCount;
     return len;
 }
 
@@ -429,19 +430,18 @@ s32 SZSDecompressor::decomp(void* dst, u32 dstSize, const void* src, u32)
         return -1;
 
     u32 decompSize = getDecompSize(src);
-    s32 error = -2;
-    if (dstSize >= decompSize)
-    {
-#ifdef cafe
-        error = decodeSZSCafeAsm_(dst, src);
-#elif defined(SWITCH)
-        error = decodeSZSNxAsm64_(dst, src);
-#else
-        SEAD_ASSERT_MSG(false, "SZSDecompressor::decomp not implemented");
-#endif  // cafe
-    }
+    if (dstSize < decompSize)
+        return -2;
 
-    return error;
+#ifdef cafe
+    error = decodeSZSCafeAsm_(dst, src);
+#elif defined(SWITCH)
+    decodeSZSNxAsm64_(dst, src);
+#else
+    SEAD_ASSERT_MSG(false, "SZSDecompressor::decomp not implemented");
+#endif  // cafe
+
+    return decompSize;
 }
 
 }  // namespace sead
