@@ -4,7 +4,7 @@
 
 #include <basis/seadTypes.h>
 
-#ifndef SEAD_DEBUG
+#ifdef SEAD_DEBUG
 #define SEAD_ASSERT_MSG(condition, message, ...)                                                   \
     do                                                                                             \
     {                                                                                              \
