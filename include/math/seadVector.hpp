@@ -112,12 +112,6 @@ inline T Vector2<T>::squaredLength() const
 }
 
 template <typename T>
-inline T Vector2<T>::normalize()
-{
-    return Vector2CalcCommon<T>::normalize(*this);
-}
-
-template <typename T>
 inline Vector3<T>::Vector3(T x_, T y_, T z_)
 {
     Vector3CalcCommon<T>::set(*this, x_, y_, z_);

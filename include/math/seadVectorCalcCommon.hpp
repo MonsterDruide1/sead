@@ -91,20 +91,6 @@ inline T Vector2CalcCommon<T>::length(const Base& v)
 }
 
 template <typename T>
-T Vector2CalcCommon<T>::normalize(Base& v)
-{
-    const T len = length(v);
-    if (len > 0)
-    {
-        const T inv_len = 1 / len;
-        v.x *= inv_len;
-        v.y *= inv_len;
-    }
-
-    return len;
-}
-
-template <typename T>
 inline void Vector3CalcCommon<T>::add(Base& o, const Base& a, const Base& b)
 {
     o.x = a.x + b.x;
