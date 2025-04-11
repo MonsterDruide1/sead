@@ -24,7 +24,6 @@ public:
     static T normalize(Base& v);
     static T squaredLength(const Base& v);
     static T length(const Base& v);
-    static T normalize(Base& v);
 };
 
 template <typename T>
