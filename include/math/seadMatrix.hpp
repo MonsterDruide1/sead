@@ -526,7 +526,7 @@ inline void Matrix34<T>::toQuat(QuatT& q) const
 }
 
 template <typename T>
-inline Vector3<T> Matrix34<T>::getBase(s32 axis) const
+inline typename Policies<T>::Vec3Base Matrix34<T>::getBase(s32 axis) const
 {
     Vec3 o;
     Matrix34CalcCommon<T>::getBase(o, *this, axis);
@@ -542,7 +542,7 @@ inline Vector4<T> Matrix34<T>::getRow(s32 axis) const
 }
 
 template <typename T>
-inline Vector3<T> Matrix34<T>::getTranslation() const
+inline typename Policies<T>::Vec3Base Matrix34<T>::getTranslation() const
 {
     Vec3 o;
     Matrix34CalcCommon<T>::getTranslation(o, *this);
@@ -550,7 +550,7 @@ inline Vector3<T> Matrix34<T>::getTranslation() const
 }
 
 template <typename T>
-inline Vector3<T> Matrix34<T>::getRotation() const
+inline typename Policies<T>::Vec3Base Matrix34<T>::getRotation() const
 {
     Vec3 o;
     Matrix34CalcCommon<T>::getRotation(o, *this);
