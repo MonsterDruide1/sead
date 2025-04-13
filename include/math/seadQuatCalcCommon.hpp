@@ -198,7 +198,9 @@ inline void QuatCalcCommon<T>::calcRPY(Vec3& rpy, const Base& q)
 
     Matrix34<T> mtx;
     mtx.fromQuat(q);
-    mtx.getRotation(rpy);
+    Vector3<T> rpyVec;
+    mtx.getRotation(rpyVec);
+    rpy = {rpyVec.x, rpyVec.y, rpyVec.z};
 }
 
 template <typename T>

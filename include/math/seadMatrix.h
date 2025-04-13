@@ -112,7 +112,7 @@ private:
     using Mtx33 = Matrix33<T>;
     using Mtx44 = Matrix44<T>;
 
-    using Vec3 = typename Policies<T>::Vec3Base;
+    using Vec3 = Vector3<T>;
     using Vec4 = Vector4<T>;
     using QuatT = typename Policies<T>::QuatBase;
 
