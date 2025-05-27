@@ -22,7 +22,7 @@ bool TaskMgr::changeTaskState_(TaskBase* task, TaskBase::State state)
                 task->mState = TaskBase::cPrepare;
                 appendToList_(mPrepareList, task);
 
-                if (mPrepareThread == NULL || mPrepareThread->sendMessage(1, 1))
+                if (mPrepareThread == NULL || mPrepareThread->sendMessage(1, MessageQueue::BlockType::NonBlocking))
                 {
                     mCriticalSection.unlock();
                     return true;
@@ -42,9 +42,6 @@ bool TaskMgr::changeTaskState_(TaskBase* task, TaskBase::State state)
             task->mState = TaskBase::cRunning;
             task->mTaskListNode.erase();
             appendToList_(mActiveList, task);
-
-            if (ResourceMgr::instance() != NULL)
-                ResourceMgr::instance()->postCreate();
 
             task->enterCommon();
 
@@ -98,11 +95,11 @@ void TaskMgr::doDestroyTask_(TaskBase* task)
 {
     mCriticalSection.lock();
 
-    TreeNode* node = task->mChild;
+    TreeNode* node = task->child();
     while (node != NULL)
     {
-        doDestroyTask_(static_cast<TTreeNode<TaskBase*>*>(node)->mData);
-        node = task->mChild;
+        doDestroyTask_(static_cast<TTreeNode<TaskBase*>*>(node)->value());
+        node = task->child();
     }
 
     if (changeTaskState_(task, TaskBase::cDead))
@@ -110,7 +107,7 @@ void TaskMgr::doDestroyTask_(TaskBase* task)
         task->detachAll();
 
         HeapArray heapArray(task->mHeapArray);
-        for (s32 i = 0; i < HeapMgr::sRootHeaps.mPtrNum; i++)
+        for (s32 i = 0; i < HeapMgr::getRootHeapNum(); i++)
         {
             Heap* heap = heapArray.mHeaps[i];
             if (heap != NULL)
@@ -136,7 +133,8 @@ void TaskMgr::finalize()
         mRootTask = NULL;
     }
 
-    for (s32 i = 0; i < HeapMgr::sRootHeaps.mPtrNum; i++)
+    s32 rootHeapNum = HeapMgr::getRootHeapNum();
+    for (s32 i = 0; i < rootHeapNum; i++)
     {
         Heap* heap = mHeapArray.mHeaps[i];
         if (heap)
