@@ -5,6 +5,7 @@
 #include <limits>
 #include <math/seadMathPolicies.h>
 #include <math/seadVector.h>
+#include <math/seadQuatCalcCommon.h>
 
 namespace sead
 {
