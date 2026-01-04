@@ -493,7 +493,7 @@ inline T MathCalcCommon<T>::roundUp(T x, u32 multNumber)
 }
 
 template <>
-inline s32 MathCalcCommon<u32>::roundUpPow2(u32 val, u32 base)
+inline u32 MathCalcCommon<u32>::roundUpPow2(u32 val, u32 base)
 {
     SEAD_ASSERT_MSG(((base - 1) & base) == 0, "illegal param[val:%d, base:%d]", val, base);
     return (val + base - 1) & ~(base - 1);
@@ -508,7 +508,7 @@ inline s32 MathCalcCommon<s32>::roundUpPow2(s32 val, u32 base)
 }
 
 template <>
-inline u64 MathCalcCommon<u64>::roundUpPow2(u64 val, s32 base)
+inline u64 MathCalcCommon<u64>::roundUpPow2(u64 val, u32 base)
 {
     SEAD_ASSERT_MSG(val >= 0 && (u64(base - 1) & u64(base)) == 0, "illegal param[val:%lu, base:%d]",
                     val, base);
@@ -522,14 +522,14 @@ inline bool MathCalcCommon<s32>::isPow2(s32 t)
 }
 
 template <>
-inline u32 MathCalcCommon<u32>::roundDownPow2(u32 val, s32 base)
+inline u32 MathCalcCommon<u32>::roundDownPow2(u32 val, u32 base)
 {
     SEAD_ASSERT_MSG(base > 0 && (base - 1u & base) == 0, "illegal param[base:%d]", base);
     return val & ~(base - 1u);
 }
 
 template <>
-inline u64 MathCalcCommon<u64>::roundDownPow2(u64 val, s32 base)
+inline u64 MathCalcCommon<u64>::roundDownPow2(u64 val, u32 base)
 {
     SEAD_ASSERT_MSG(base > 0 && (base - 1u & base) == 0, "illegal param[base:%d]", base);
     return val & ~(base - 1llu);
