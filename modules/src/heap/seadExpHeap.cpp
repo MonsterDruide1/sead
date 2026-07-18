@@ -61,7 +61,7 @@ ExpHeap* ExpHeap::tryCreate(size_t size_, const SafeString& name, Heap* parent, 
     }
     else
     {
-        size = MathSizeT::roundUpPow2(size_, alignment);
+        size = (size_ + alignment - 1) & (u64)-alignment;
     }
 
     if (size < sizeof(ExpHeap) + sizeof(MemBlock) + 0x1)
